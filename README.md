@@ -32,4 +32,4 @@ python3 -m streamlit run app.py
 
 Tags were added by our team. Event details can change, so check the official source links.
 
-ChatGPT and Cursor helped with research and coding. Google Stitch helped with the design.
+Cursor helped with coding and debugging. Google Stitch helped with the design.
