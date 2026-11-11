@@ -423,6 +423,23 @@ def visible_tags(all_tags):
     return visible
 
 
+
+def count_events_by_interest(events):
+    """Count the number of event listings for each interest."""
+    counts = {}
+    for event in events:
+        for tag in set(event.get("tags") or []):
+            tag = str(tag).strip().lower()
+            if tag:
+                counts[tag] = counts.get(tag, 0) + 1
+    return counts
+
+
+def interest_label(tag, counts):
+    """Display an interest with its event count."""
+    return f"{str(tag).capitalize()} ({counts.get(str(tag).lower(), 0)})"
+
+
 def main():
     st.set_page_config(page_title="Aggie Event Finder", page_icon="✨", layout="centered")
     if "searched" not in st.session_state:
@@ -434,6 +451,8 @@ def main():
     st.session_state.setdefault("recommendation_method", "Balanced TF-IDF")
 
     events = load_events()
+    pool = keep_events(events, st.session_state.get("upcoming_only", True), date.today())
+    interest_counts = count_events_by_interest(pool)
     all_tags = sorted({tag for event in events for tag in event["tags"]})
     first_day = datetime.strptime(events[0]["date"], "%Y-%m-%d")
     last_day = datetime.strptime(events[-1]["date"], "%Y-%m-%d")
@@ -483,7 +502,7 @@ def main():
                 "Tap interests to match",
                 choices,
                 selection_mode="multi",
-                format_func=str.capitalize,
+                format_func=lambda tag: interest_label(tag, interest_counts),
                 key="interest_pills",
                 )
         else:
