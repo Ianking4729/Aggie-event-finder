@@ -5,7 +5,9 @@ from datetime import date, datetime
 
 import streamlit as st
 
-from recommender import load_events, recommend_events
+from recommender import (
+    load_events, recommend_events, recommend_tfidf, recommend_tfidf_balanced
+)
 
 PAGE_CSS = """
 <style>
@@ -340,7 +342,7 @@ def safe_url(url):
     return ""
 
 
-def render_card(event, shared_tags=None, match_count=None):
+def render_card(event, shared_tags=None, match_count=None, similarity=None):
     month, day = ribbon_parts(event.get("date", ""))
     title = html.escape(event.get("title") or "Untitled event")
     where = html.escape((event.get("location") or "").strip() or "Not listed")
@@ -354,6 +356,9 @@ def render_card(event, shared_tags=None, match_count=None):
     if match_count is not None:
         word = "tag" if match_count == 1 else "tags"
         score = f"<p class='match-line'>{match_count} matching {word}</p>"
+
+    if similarity is not None:
+        score = f"<p class='match-line'>TF-IDF similarity: {similarity:.4f}</p>"
 
     link = ""
     url = safe_url(event.get("source_url") or "")
@@ -395,6 +400,7 @@ def clear_filters():
     st.session_state.upcoming_only = True
     st.session_state.query_tags = []
     st.session_state.searched = False
+    st.session_state.recommendation_method = "Balanced TF-IDF"
 
 
 def run_search():
@@ -425,6 +431,7 @@ def main():
         st.session_state.played_intro = False
     st.session_state.setdefault("upcoming_only", True)
     st.session_state.setdefault("motion_on", True)
+    st.session_state.setdefault("recommendation_method", "Balanced TF-IDF")
 
     events = load_events()
     all_tags = sorted({tag for event in events for tag in event["tags"]})
@@ -478,14 +485,19 @@ def main():
                 selection_mode="multi",
                 format_func=str.capitalize,
                 key="interest_pills",
-                wrap=True,
-            )
+                )
         else:
             st.caption("No interests match that search.")
         st.text_input(
             "Additional interests or keywords",
             key="extra_keywords",
             placeholder="e.g. sports, career",
+        )
+        st.selectbox(
+            "Recommendation method",
+            ["Original baseline", "TF-IDF", "Balanced TF-IDF"],
+            key="recommendation_method",
+            help="Compare shared-tag ranking with TF-IDF and a diversity-aware TF-IDF version.",
         )
         st.toggle("Upcoming events only", key="upcoming_only")
         st.toggle("Motion", key="motion_on")
@@ -497,7 +509,13 @@ def main():
     searched = st.session_state.searched
     if searched:
         heading = "Recommended for you"
-        results = recommend_events(pool, st.session_state.query_tags, limit=5)
+        method = st.session_state.recommendation_method
+        if method == "Original baseline":
+            results = recommend_events(pool, st.session_state.query_tags, limit=5)
+        elif method == "TF-IDF":
+            results = recommend_tfidf(pool, st.session_state.query_tags, limit=5)
+        else:
+            results = recommend_tfidf_balanced(pool, st.session_state.query_tags, limit=5)
         count_text = f"{len(results)} matches"
     else:
         heading = "Upcoming events"
@@ -546,9 +564,13 @@ def main():
         )
     elif searched:
         used = ", ".join(st.session_state.query_tags)
-        st.caption(f"Matched on {used}. Higher scores are listed first.")
+        method = st.session_state.recommendation_method
+        st.caption(f"Method: {method}. Interests: {used}. Higher scores are listed first.")
         for event in results:
-            render_card(event, event["shared_tags"], event["match_count"])
+            if method == "Original baseline":
+                render_card(event, event["shared_tags"], event["match_count"])
+            else:
+                render_card(event, similarity=event["similarity"])
     else:
         st.caption("These are in date order. Press Find my events to rank them.")
         for event in results:
