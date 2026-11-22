@@ -3,6 +3,8 @@
 .env.*
 *.pem
 .streamlit/secrets.toml
+student_survey_responses.csv
+data_review_queue.csv
 
 # Virtual environments
 .venv/

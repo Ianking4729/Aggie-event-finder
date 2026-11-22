@@ -1,4 +1,4 @@
-"""Aggie Event Finder: original tag baseline plus an experimental TF-IDF model.
+"""Aggie Event Finder recommendation methods.
 
 Run: python recommender.py
 Install dependency: pip install scikit-learn
@@ -36,8 +36,26 @@ def normalize_interests(user_tags):
     return {str(tag).strip().lower() for tag in (user_tags or []) if str(tag).strip()}
 
 
+def _title_key(event):
+    title = re.sub(r"\s+", " ", str(event.get("title") or "")).strip().casefold()
+    return title or f"event:{event.get('event_id') or id(event)}"
+
+
+def _unique_titles(events):
+    seen = set()
+    unique = []
+    for event in events:
+        key = _title_key(event)
+        if key not in seen:
+            seen.add(key)
+            unique.append(event)
+    return unique
+
+
 def recommend_events(events, user_tags, limit=3):
-    """UNCHANGED baseline behavior: rank only by the count of shared tags."""
+    """Baseline: rank events by the number of selected tags they share."""
+    if limit <= 0:
+        return []
     wanted = normalize_interests(user_tags)
     ranked = []
     for event in events:
@@ -52,11 +70,12 @@ def recommend_events(events, user_tags, limit=3):
             "location": event["location"],
             "description": event["description"],
             "source_url": event["source_url"],
+            "tags": event["tags"],
             "shared_tags": sorted(shared),
             "match_count": len(shared),
         })
     ranked.sort(key=lambda item: item["match_count"], reverse=True)
-    return ranked[:limit]
+    return _unique_titles(ranked)[:limit]
 
 
 def recommend_tfidf(events, user_tags, limit=5):
@@ -89,15 +108,24 @@ def recommend_tfidf(events, user_tags, limit=5):
     scores = cosine_similarity(matrix[-1], matrix[:-1]).ravel()
     order = sorted(range(len(events)), key=lambda i: (-scores[i], i))
     results = []
+    seen_titles = set()
     for i in order:
         if scores[i] <= 0:
             continue
         # A query must match at least one *whole interest* in the event text.
         # This prevents false positives like "not-a-real-tag" matching "Real Talk".
-        if not any(set(re.findall(r"[a-z0-9]+", interest)).issubset(token_sets[i])
-                   for interest in wanted):
+        matched_interests = [
+            interest
+            for interest in wanted
+            if set(re.findall(r"[a-z0-9]+", interest)).issubset(token_sets[i])
+        ]
+        if not matched_interests:
             continue
         event = events[i]
+        title_key = _title_key(event)
+        if title_key in seen_titles:
+            continue
+        seen_titles.add(title_key)
         results.append({
             "event_id": event["event_id"],
             "title": event["title"],
@@ -107,6 +135,7 @@ def recommend_tfidf(events, user_tags, limit=5):
             "description": event["description"],
             "source_url": event["source_url"],
             "tags": event["tags"],
+            "matched_interests": sorted(matched_interests),
             "similarity": round(float(scores[i]), 4),
         })
         if len(results) >= limit:
@@ -121,6 +150,8 @@ def diversify_sports(ranked, limit=5, max_sports=2):
     Supply a broader ranked candidate list than the final display limit.
     Does NOT manufacture matches or force irrelevant non-sports events.
     """
+    if limit <= 0:
+        return []
     selected = []
     sports_count = 0
     for event in ranked:
@@ -145,6 +176,13 @@ def diversify_sports(ranked, limit=5, max_sports=2):
 
 
 def recommend_tfidf_balanced(events, user_tags, limit=5, max_sports=2):
+    """Balance sports only after TF-IDF finds relevant candidates.
+
+    Sports-only requests are not capped. For mixed requests, the cap is applied
+    only when enough relevant non-sports candidates can fill the requested list.
+    """
+    if limit <= 0:
+        return []
     wanted = normalize_interests(user_tags)
     ranked = recommend_tfidf(events, user_tags, limit=len(events))
     # A sports-specific search should still return the best sports events.

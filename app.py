@@ -348,7 +348,8 @@ def render_card(event, shared_tags=None, match_count=None, similarity=None):
     where = html.escape((event.get("location") or "").strip() or "Not listed")
     when = html.escape(pretty_when(event.get("date", ""), event.get("time") or ""))
     description = (event.get("description") or "").strip()
-    blurb = f"<p class='blurb'>{html.escape(description)}</p>" if description else ""
+    blurb_text = description or "Description not available; check the source for details."
+    blurb = f"<p class='blurb'>{html.escape(blurb_text)}</p>"
 
     tags = shared_tags if shared_tags is not None else event.get("tags", [])
     tag_html = "".join(f"<span class='tag'>{html.escape(tag)}</span>" for tag in tags)
@@ -365,7 +366,7 @@ def render_card(event, shared_tags=None, match_count=None, similarity=None):
     if url:
         link = (
             f"<a class='card-link' href='{html.escape(url, quote=True)}' "
-            "target='_blank' rel='noopener'>View official event</a>"
+            "target='_blank' rel='noopener'>Check source details</a>"
         )
 
     number = int(event.get("event_id") or "0")
@@ -435,6 +436,26 @@ def count_events_by_interest(events):
     return counts
 
 
+def dataset_quality_counts(events):
+    return {
+        "Missing descriptions": sum(not (event.get("description") or "").strip() for event in events),
+        "Missing locations": sum(not (event.get("location") or "").strip() for event in events),
+        "Missing times": sum(not (event.get("time") or "").strip() for event in events),
+        "Invalid dates": sum(
+            not _has_valid_date(event.get("date", ""))
+            for event in events
+        ),
+    }
+
+
+def _has_valid_date(value):
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
 def interest_label(tag, counts):
     """Display an interest with its event count."""
     return f"{str(tag).capitalize()} ({counts.get(str(tag).lower(), 0)})"
@@ -449,17 +470,30 @@ def main():
     st.session_state.setdefault("upcoming_only", True)
     st.session_state.setdefault("motion_on", True)
     st.session_state.setdefault("recommendation_method", "Balanced TF-IDF")
+    if st.session_state.recommendation_method in (
+        "Category balancing",
+        "Sports-capped TF-IDF (Checkpoint 2)",
+    ):
+        st.session_state.recommendation_method = "Balanced TF-IDF"
 
     events = load_events()
-    pool = keep_events(events, st.session_state.get("upcoming_only", True), date.today())
+    today = date.today()
+    pool = keep_events(events, st.session_state.get("upcoming_only", True), today)
     interest_counts = count_events_by_interest(pool)
     all_tags = sorted({tag for event in events for tag in event["tags"]})
-    first_day = datetime.strptime(events[0]["date"], "%Y-%m-%d")
-    last_day = datetime.strptime(events[-1]["date"], "%Y-%m-%d")
-    date_span = (
-        f"{first_day.strftime('%b')} {first_day.day}, {first_day.year}"
-        f" – {last_day.strftime('%b')} {last_day.day}, {last_day.year}"
-    )
+    valid_dates = [
+        date.fromisoformat(event["date"])
+        for event in pool
+        if _has_valid_date(event.get("date", ""))
+    ]
+    if valid_dates:
+        first_day, last_day = min(valid_dates), max(valid_dates)
+        date_span = (
+            f"{first_day.strftime('%b')} {first_day.day}, {first_day.year}"
+            f" – {last_day.strftime('%b')} {last_day.day}, {last_day.year}"
+        )
+    else:
+        date_span = "No upcoming event dates listed"
     motion = st.session_state.get("motion_on", True)
     intro = "rise" if motion and not st.session_state.played_intro else ""
 
@@ -514,17 +548,48 @@ def main():
         )
         st.selectbox(
             "Recommendation method",
-            ["Original baseline", "TF-IDF", "Balanced TF-IDF"],
+            [
+                "Original baseline",
+                "TF-IDF",
+                "Balanced TF-IDF",
+            ],
             key="recommendation_method",
-            help="Compare shared-tag ranking with TF-IDF and a diversity-aware TF-IDF version.",
+            help=(
+                "Balanced TF-IDF ranks relevant events first, then limits sports "
+                "to two when enough relevant non-sports alternatives can fill the list."
+            ),
         )
         st.toggle("Upcoming events only", key="upcoming_only")
         st.toggle("Motion", key="motion_on")
         st.button("Find my events", key="find_events", type="primary", width="stretch", on_click=run_search)
         st.button("Reset filters", key="reset_filters", width="stretch", on_click=clear_filters)
 
-    today = date.today()
-    pool = keep_events(events, st.session_state.get("upcoming_only", True), today)
+    with st.expander("Dataset categories and quality"):
+        st.caption(
+            f"{len(pool)} listings in the current event pool; "
+            f"{len(events)} total records. Category tags can overlap."
+        )
+        st.dataframe(
+            [
+                {"Tag": tag.title(), "Event listings": count}
+                for tag, count in sorted(
+                    count_events_by_interest(pool).items(),
+                    key=lambda item: (-item[1], item[0]),
+                )
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+        quality = dataset_quality_counts(events)
+        st.caption(
+            "All-record data checks: "
+            + " · ".join(f"{name}: {count}" for name, count in quality.items())
+        )
+        st.caption(
+            "Past dates are hidden by default. Event records are maintained from "
+            "their source links; verify details at the source before attending."
+        )
+
     searched = st.session_state.searched
     if searched:
         heading = "Recommended for you"
@@ -533,7 +598,7 @@ def main():
             results = recommend_events(pool, st.session_state.query_tags, limit=5)
         elif method == "TF-IDF":
             results = recommend_tfidf(pool, st.session_state.query_tags, limit=5)
-        else:
+        elif method == "Balanced TF-IDF":
             results = recommend_tfidf_balanced(pool, st.session_state.query_tags, limit=5)
         count_text = f"{len(results)} matches"
     else:
@@ -584,11 +649,21 @@ def main():
     elif searched:
         used = ", ".join(st.session_state.query_tags)
         method = st.session_state.recommendation_method
-        st.caption(f"Method: {method}. Interests: {used}. Higher scores are listed first.")
+        if method == "Balanced TF-IDF":
+            st.info(
+                "TF-IDF ranks text matches first. Sports are limited to two only "
+                "when enough relevant non-sports events can fill the list. "
+                "Similarity scores are not probabilities."
+            )
+        else:
+            st.caption(f"Method: {method}. Interests: {used}. Higher scores are listed first.")
         for event in results:
             if method == "Original baseline":
                 render_card(event, event["shared_tags"], event["match_count"])
             else:
+                matched = ", ".join(event.get("matched_interests", []))
+                if matched:
+                    st.caption(f"Matched interests: {matched}")
                 render_card(event, similarity=event["similarity"])
     else:
         st.caption("These are in date order. Press Find my events to rank them.")
