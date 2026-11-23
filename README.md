@@ -64,9 +64,17 @@ prefer the balanced list.
 
 ## Practice questions
 
-1. **What does TF-IDF do here?** It weights terms by how often they occur in an event and how distinctive they are across the catalog. We compare the resulting interest and event vectors with cosine similarity. This is text ranking, not a trained classifier.
-2. **Why use TF-IDF instead of a supervised model?** We do not yet have student relevance labels to train or validate a supervised model. TF-IDF is a transparent text-based approach we can compare with the existing tag-count baseline.
-3. **Does a more diverse list mean better recommendations?** Not necessarily. For `basketball + social` in the full catalog, Balanced TF-IDF reduces sports results from 5/5 to 2/5 without changing tag-agreement@5 in this example. Student ratings are still needed to evaluate perceived relevance.
+1. **Technical understanding — Elias Greene:** How do TF-IDF and cosine similarity compare a student's interests with event text?
+
+   **Answer:** TF-IDF weights terms by how often they appear in an event and how distinctive they are across the catalog. Cosine similarity compares the weighted interest and event vectors. A higher score means greater text similarity, not a probability or a guarantee the student will like the event.
+
+2. **Technical decision — Boluwatife Kalejaiye:** How does the sports cap decide when to limit sports events, and why doesn't it cap sports-only searches?
+
+   **Answer:** Balanced TF-IDF ranks relevant events first and limits sports only when enough relevant non-sports events can fill the list. Sports-only searches stay uncapped because sports are what the student requested.
+
+3. **Results and limitations — Ian Kingori:** Does five out of five selected-tag matches prove students prefer Balanced TF-IDF?
+
+   **Answer:** No. Those matches use our team-assigned tags, not student judgments. Student ratings are still needed to evaluate perceived relevance.
 
 The upcoming-only corpus is more imbalanced: on the audit date 2026-11-22 it
 contains 29 records, 25 tagged `sports` and 25 tagged `basketball`, with only
