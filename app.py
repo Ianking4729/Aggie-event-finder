@@ -3,6 +3,8 @@
 import html
 from datetime import date, datetime
 
+from event_time import eastern_now, keep_available
+
 import streamlit as st
 
 from recommender import (
@@ -304,19 +306,8 @@ def parse_keywords(text):
 
 
 def keep_events(events, upcoming_only, today=None):
-    # Keep file order so equal scores still prefer the earlier event.
-    if not upcoming_only:
-        return list(events)
-    today = today or date.today()
-    kept = []
-    for event in events:
-        try:
-            event_date = date.fromisoformat(event["date"])
-        except ValueError:
-            continue
-        if event_date >= today:
-            kept.append(event)
-    return kept
+    """Compatibility wrapper. Use Greensboro current date AND time."""
+    return keep_available(events, upcoming_only, now=today if isinstance(today, datetime) else eastern_now())
 
 
 def pretty_when(iso_date, clock):
@@ -476,9 +467,16 @@ def main():
     ):
         st.session_state.recommendation_method = "Balanced TF-IDF"
 
+    render_live_app()
+
+
+@st.fragment(run_every="15s")
+def render_live_app():
+    """Refresh clock and event eligibility every 15 seconds in Eastern time."""
     events = load_events()
-    today = date.today()
-    pool = keep_events(events, st.session_state.get("upcoming_only", True), today)
+    now = eastern_now()
+    today = now.date()
+    pool = keep_events(events, st.session_state.get("upcoming_only", True), now)
     interest_counts = count_events_by_interest(pool)
     all_tags = sorted({tag for event in events for tag in event["tags"]})
     valid_dates = [
@@ -515,8 +513,9 @@ def main():
           <h2>Find your next <span>Aggie experience</span></h2>
           <p>Choose interests to rank events from the dataset. Dates below come from the event file.</p>
           <div class="meta-row">
-            <span class="meta-chip">{html.escape(date_span)}</span>
-            <span class="meta-chip">Greensboro, NC</span>
+            <span class="meta-chip">Today: {html.escape(now.strftime("%A, %B %d, %Y"))}</span>
+            <span class="meta-chip">Live Greensboro time: {html.escape(now.strftime("%I:%M %p %Z"))}</span>
+            <span class="meta-chip">Event dates: {html.escape(date_span)}</span>
           </div>
         </section>
         """
@@ -603,14 +602,14 @@ def main():
         count_text = f"{len(results)} matches"
     else:
         heading = "Upcoming events"
-        results = pool
+        results = sorted(pool, key=lambda e: (e.get("date", ""), e.get("time", ""), e.get("title", "")))
         count_text = f"{len(results)} campus events"
 
     discovery_class = "" if searched else "on"
     recommended_class = "on" if searched else ""
     if st.session_state.get("upcoming_only", True):
         filter_note = (
-            f"Events on or after {today.strftime('%b')} {today.day}, {today.year} stay in the list."
+            f"Events are checked against the current Greensboro date and time. Events with published end times disappear when they end."
         )
     else:
         filter_note = "Upcoming is off, so earlier dates stay in the list too."

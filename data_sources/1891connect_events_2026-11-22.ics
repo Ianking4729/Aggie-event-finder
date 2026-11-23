@@ -1,0 +1,125 @@
+BEGIN:VCALENDAR
+PRODID:-//github.com/rianjs/ical.net//NONSGML ical.net 4.0//EN
+VERSION:2.0
+BEGIN:VEVENT
+CATEGORIES:CommunityService
+CATEGORIES:Greek Life
+DESCRIPTION:\nSleep Out for the Homeless\nThe Eta Chapter of Phi Beta Sigm
+ a Fraternity\, Inc. is proud to present “Sleep Out for the Homeless\,” a 
+ community service and awareness event focused on supporting individuals e
+ xperiencing homelessness in our community.\nThroughout the event\, member
+ s and participants will collect non-perishable food items\, clothing\, hy
+ giene products\, blankets\, and other essential supplies that can be dona
+ ted to individuals and organizations serving those in need. The goal is n
+ ot only to collect donations\, but also to bring awareness to the realiti
+ es and challenges that people experiencing homelessness face every day.\n
+ As part of the experience\, participants will spend the night outdoors wi
+ th limited comforts to gain a greater understanding of what it can feel l
+ ike to lack access to a safe\, comfortable place to sleep. While we recog
+ nize that one night cannot fully recreate the experience of homelessness\
+ , the event is designed to encourage empathy\, awareness\, compassion\, a
+ nd action.\n“Sleep Out for the Homeless” is an opportunity for the Eta Ch
+ apter\, campus organizations\, and community members to come together and
+  make a meaningful difference. Through service\, education\, and giving\,
+  we hope to remind our community that everyone deserves dignity\, safety\
+ , basic necessities\, and a place to call home.\nEvent Goals:\n\nCollect 
+ non-perishable food and essential supplies\nCollect new and gently used c
+ lothing\nCollect blankets and other basic necessities\nRaise awareness ab
+ out homelessness in our community\nEncourage empathy and community involv
+ ement\nConnect donations with local organizations and individuals who nee
+ d them\nPromote the values of service\, brotherhood\, and community uplif
+ t\n\n\nHosted by: Phi Beta Sigma Fraternity\, Inc.\n\nAdditional Informat
+ ion can be found at: https://1891connect.ncat.edu/event/12985321
+DTEND:20261123T043000Z
+DTSTAMP:20261123T014619Z
+DTSTART:20261122T000000Z
+LOCATION:Phi Beta Sigma Plot
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:Sleep Out For The Homeless
+UID:https://1891connect.ncat.edu/event/12985321
+URL:https://1891connect.ncat.edu/event/12985321
+X-HOSTS:Phi Beta Sigma Fraternity\, Inc.
+END:VEVENT
+BEGIN:VEVENT
+CATEGORIES:GroupBusiness
+CATEGORIES:Professional Development
+DESCRIPTION:Recurring club-wide meetings built around practice\, feedback\
+ , and growth in a supportive\, family-like environment. Members will part
+ icipate in Table Topics\, prepared speeches\, and structured speaking exe
+ rcises while receiving constructive feedback from fellow members. Through
+  consistent repetition and the Aggie Toastmasters framework\, our goal is
+  to make effective public speaking feel natural and second nature.\n\nHos
+ ted by: Aggie Toastmasters\n\nAdditional Information can be found at: htt
+ ps://1891connect.ncat.edu/event/12869579
+DTEND:20261124T000000Z
+DTSTAMP:20261123T014619Z
+DTSTART:20261123T230000Z
+GEO:36.076590;-79.772550
+LOCATION:Craig Hall 112
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:Full Body Meeting
+UID:https://1891connect.ncat.edu/event/12869579
+URL:https://1891connect.ncat.edu/event/12869579
+X-HOSTS:Aggie Toastmasters
+END:VEVENT
+BEGIN:VEVENT
+CATEGORIES:Social
+CATEGORIES:Academic/Educational
+DESCRIPTION:Meet The Iotas. The Zeta Chapter of Iota Phi Theta Fraternity\
+ , Inc. is planning "Pride vs. Props: What They Don’t Tell You About Greek
+  Life"\, an interactive web seminar and candid conversation designed for 
+ male students looking to build a lasting legacy on campus and beyond. Get
+  to know the brothers of the Zeta Chapter and engage in a real talk on Gr
+ eek life\, the history and founding principles of Iota Phi Theta (Scholar
+ ship\, Leadership\, Citizenship\, Fidelity\, and Brotherhood)\, and what 
+ it truly means to find your own lane rather than following the crowd.\n\n
+ Hosted by: Iota Phi Theta Fraternity\, Inc.\n\nAdditional Information can
+  be found at: https://1891connect.ncat.edu/event/12975088
+DTEND:20261125T010000Z
+DTSTAMP:20261123T014619Z
+DTSTART:20261124T235500Z
+LOCATION:Online
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:Pride vs. Props: What They Don’t Tell You About Greek Life
+UID:https://1891connect.ncat.edu/event/12975088
+URL:https://1891connect.ncat.edu/event/12975088
+X-HOSTS:Iota Phi Theta Fraternity\, Inc.
+END:VEVENT
+BEGIN:VEVENT
+CATEGORIES:ThoughtfulLearning
+DESCRIPTION:Join us for a festive fusion of creativity\, engineering\, and
+  holiday cheer at Santa’s Sleigh Sweepers! This hands-on STEAM adventure 
+ invites young learners to step into Santa’s workshop and help design\, bu
+ ild\, and test robotic solutions that keep the sleigh running smoothly fo
+ r its big night.\nParticipants will rotate through imaginative exploratio
+ n stations where they will: Build and code holiday‑themed robots to compl
+ ete merry missions. Navigate snowy obstacle courses that challenge precis
+ ion\, logic\, and teamwork. Tackle engineering design tasks inspired by S
+ anta’s seasonal challenges. Explore real-world STEAM concepts through pla
+ yful\, winter‑wonderland activities\nThroughout the event\, learners will
+  engage in authentic STEAM practices including computational thinking\, c
+ reative problem‑solving\, engineering design\, and data exploration. Whet
+ her they’re programming a robot to deliver presents\, designing a sleigh‑
+ repair solution\, or discovering how sensors help robots “see” in a snowy
+  environment\, participants will experience the joy of innovation wrapped
+  in holiday magic.\nPerfect for learners ages 3–12\, Santa’s Sleigh Sweep
+ ers blends imagination with engineering to spark curiosity\, confidence\,
+  and festive fun.\n\nHosted by: College of Education STEAM Lab\n\nAdditio
+ nal Information can be found at: https://1891connect.ncat.edu/event/12781
+ 447
+DTEND:20261204T000000Z
+DTSTAMP:20261123T014619Z
+DTSTART:20261203T220000Z
+GEO:36.074660;-79.771260
+LOCATION:Proctor Hall
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:Santa's Sleigh Sweepers
+UID:https://1891connect.ncat.edu/event/12781447
+URL:https://1891connect.ncat.edu/event/12781447
+X-HOSTS:College of Education STEAM Lab
+END:VEVENT
+END:VCALENDAR

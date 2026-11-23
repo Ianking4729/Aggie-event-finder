@@ -1,0 +1,22 @@
+{
+  "generated_at_greensboro": "2026-11-22T21:20:59.953631-05:00",
+  "total": 134,
+  "upcoming": 65,
+  "archived": 69,
+  "possible_duplicate_rows": 0,
+  "upcoming_tag_counts": {
+    "sports": 25,
+    "basketball": 25,
+    "academic": 36,
+    "cultural": 2,
+    "career": 15,
+    "health": 6,
+    "social": 16,
+    "tech": 11,
+    "games": 2,
+    "service": 1
+  },
+  "missing_descriptions": 21,
+  "missing_times": 12,
+  "missing_locations": 25
+}
