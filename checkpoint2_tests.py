@@ -2,7 +2,7 @@ from recommender import (load_events, recommend_events, recommend_tfidf,
                          recommend_tfidf_balanced)
 
 events = load_events()
-assert len(events) == 98
+assert len(events) >= 98  # Dataset grows as new verified events are added
 assert len(recommend_events(events, ["academic", "career"])) == 3
 assert recommend_events(events, ["not-a-real-tag"]) == []
 assert recommend_tfidf(events, ["not-a-real-tag"]) == []
